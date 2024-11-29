@@ -17,31 +17,104 @@ const generateDeck = (): Card[] => {
 
 const Jeu = () => {
     const [deck, setDeck] = useState<Card[]>([]);
+    const [playerDeck, setPlayerDeck] = useState<Card[]>([]);
+    const [computerDeck, setComputerDeck] = useState<Card[]>([]);
     const [playerCard, setPlayerCard] = useState<Card | null>(null);
     const [computerCard, setComputerCard] = useState<Card | null>(null);
-
+    const [roundWinner, setRoundWinner] = useState<string | null>(null);
+    
     useEffect(() => {
-        setDeck(generateDeck());
+        const shuffledDeck = generateDeck();
+        shuffledDeck.sort(() => Math.random() - 0.5);
+
+        const playerCards = shuffledDeck.slice(0, 26);
+        const computerCards = shuffledDeck.slice(26, 52);
+
+        setPlayerDeck(playerCards);
+        setComputerDeck(computerCards);
+        setDeck(shuffledDeck);
     }, []);
 
-    const drawCards = () => {
-        if (deck.length > 0) {
-        const randomIndex = Math.floor(Math.random() * deck.length);
-        const drawnCard = deck[randomIndex];
-        setDeck(deck.filter((_, index) => index !== randomIndex));
 
-        return drawnCard;
-        }
-        return null;
+    const drawCards = () => {
+        const playerCard = playerDeck[0];
+        const computerCard = computerDeck[0];
+
+        setPlayerDeck(playerDeck.slice(1));
+        setComputerDeck(computerDeck.slice(1));
+
+        return { playerCard, computerCard };
     };
 
+
     const startRound = () => {
-        const playerCard = drawCards();
-        const computerCard = drawCards();
-        if (playerCard && computerCard) {
+        if (playerDeck.length === 0 || computerDeck.length === 0) {
+            setRoundWinner(playerDeck.length === 0 ? 'Ordinateur' : 'Joueur');
+            return;
+        }
+
+        const { playerCard, computerCard } = drawCards();
         setPlayerCard(playerCard);
         setComputerCard(computerCard);
+
+        if (getCardValue(playerCard) > getCardValue(computerCard)) {
+            setPlayerDeck((prev) => [...prev, playerCard, computerCard]); 
+            setRoundWinner('Joueur');
+        } else if (getCardValue(playerCard) < getCardValue(computerCard)) {
+            setComputerDeck((prev) => [...prev, playerCard, computerCard]); 
+            setRoundWinner('Ordinateur');
+        } else {
+            setRoundWinner('Bataille');
+            handleBattle(playerCard, computerCard);
         }
+    };
+
+    const handleBattle = (playerCard: Card, computerCard: Card) => {
+        if (playerDeck.length < 2 || computerDeck.length < 2) {
+            setRoundWinner(playerDeck.length === 0 ? 'Ordinateur' : 'Joueur');
+            return;
+        }
+
+        const playerHiddenCard = playerDeck[1];
+        const computerHiddenCard = computerDeck[1];
+
+        const playerVisibleCard = playerDeck[2];
+        const computerVisibleCard = computerDeck[2];
+
+        setPlayerDeck(playerDeck.slice(3));
+        setComputerDeck(computerDeck.slice(3));
+
+        if (getCardValue(playerVisibleCard) > getCardValue(computerVisibleCard)) {
+            setPlayerDeck((prev) => [
+            ...prev,
+            playerCard,
+            computerCard,
+            playerHiddenCard,
+            computerHiddenCard,
+            playerVisibleCard,
+            computerVisibleCard,
+            ]);
+            setRoundWinner('Joueur');
+        } else if (getCardValue(playerVisibleCard) < getCardValue(computerVisibleCard)) {
+            setComputerDeck((prev) => [
+            ...prev,
+            playerCard,
+            computerCard,
+            playerHiddenCard,
+            computerHiddenCard,
+            playerVisibleCard,
+            computerVisibleCard,
+            ]);
+            setRoundWinner('Ordinateur');
+        } else {
+            setRoundWinner('Bataille');
+            handleBattle(playerVisibleCard, computerVisibleCard);
+        }
+    };
+
+    const getCardValue = (card: Card) => {
+        const valueOrder = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'VALET', 'DAME', 'ROI', 'AS'];
+        return valueOrder.indexOf(card.rank);
     };
 
     return (
@@ -50,23 +123,28 @@ const Jeu = () => {
                 <div className='text-center text-white pt-4'>
                     <span className='text-2xl'>Bataille</span>
                 </div>
-                <div className='flex flex-row items-center justify-between h-1/2 '>
+                <div className='flex flex-row items-center justify-between h-1/2 max-w-[800px] mx-auto'>
                     <div>
                         <div className="flex flex-col items-center">
-                            {computerCard && <CardDisplay card={computerCard} />}
-                            <h2 className="font-semibold text-lg text-white">Ordinateur</h2>
+                            <CardDisplay card={computerCard || null} isBack={!computerCard} />
+                            <div className="font-semibold text-lg text-white text-center">Ordinateur <br />
+                                {computerDeck.length} cartes
+                            </div>
                         </div>
                     </div>
 
                     <div>
                         <div className="flex flex-col items-center">
-                            {playerCard && <CardDisplay card={playerCard} />}
-                            <h2 className="font-semibold text-lg text-white">Joueur</h2>
+                            <CardDisplay card={playerCard || null} isBack={!playerCard} />                            
+                            <div className="font-semibold text-lg text-white text-center">Joueur <br />
+                                {playerDeck.length} cartes
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className='flex flex-row justify-center items-center'>
+                <div className='flex flex-col gap-5 justify-center items-center'>
+                    <h3 className="text-white text-lg font-semibold mt-4">{roundWinner && `Gagnant du tour : ${roundWinner}`}</h3>
                     <div className=''>
                         <button onClick={startRound} className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg hover:bg-blue-600 transition duration-200">
                         Jouer
