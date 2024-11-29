@@ -167,26 +167,3 @@ const Jeu = () => {
 
 export default Jeu;
 
-
-/*
-
-<div className="flex flex-col space-y-6">
-
-                <div className="flex flex-row justify-between h-1/2 w-max">
-                <div className="flex flex-col items-center">
-                    {computerCard && <CardDisplay card={computerCard} />}
-                    <h2 className="font-semibold text-lg text-white">Ordinateur</h2>
-                </div>
-              
-                </div>
-
-                <div className=''>
-                    <button onClick={startRound} className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg hover:bg-blue-600 transition duration-200">
-                    Jouer
-                    </button>
-                </div>
-
-            </div>
-
-
-*/
