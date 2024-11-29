@@ -22,6 +22,13 @@ const Jeu = () => {
     const [playerCard, setPlayerCard] = useState<Card | null>(null);
     const [computerCard, setComputerCard] = useState<Card | null>(null);
     const [roundWinner, setRoundWinner] = useState<string | null>(null);
+
+    const [batailleDeck, setBatailleDeck] = useState<Card[]>([]);
+
+    const getCardValue = (card: Card) => {
+        const valueOrder = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'VALET', 'DAME', 'ROI', 'AS'];
+        return valueOrder.indexOf(card.rank);
+    };
     
     useEffect(() => {
         const shuffledDeck = generateDeck();
@@ -63,11 +70,14 @@ const Jeu = () => {
         } else if (getCardValue(playerCard) < getCardValue(computerCard)) {
             setComputerDeck((prev) => [...prev, playerCard, computerCard]); 
             setRoundWinner('Ordinateur');
-        } else {
+        } else if (getCardValue(playerCard) === getCardValue(computerCard)) {
             setRoundWinner('Bataille');
             handleBattle(playerCard, computerCard);
         }
+        console.log(getCardValue(computerCard))
+        console.log(getCardValue(playerCard))
     };
+
 
     const handleBattle = (playerCard: Card, computerCard: Card) => {
         if (playerDeck.length < 2 || computerDeck.length < 2) {
@@ -84,26 +94,27 @@ const Jeu = () => {
         setPlayerDeck(playerDeck.slice(3));
         setComputerDeck(computerDeck.slice(3));
 
+        
         if (getCardValue(playerVisibleCard) > getCardValue(computerVisibleCard)) {
             setPlayerDeck((prev) => [
-            ...prev,
-            playerCard,
-            computerCard,
-            playerHiddenCard,
-            computerHiddenCard,
-            playerVisibleCard,
-            computerVisibleCard,
+                ...prev,
+                playerCard,
+                computerCard,
+                playerHiddenCard,
+                computerHiddenCard,
+                playerVisibleCard,
+                computerVisibleCard,
             ]);
             setRoundWinner('Joueur');
         } else if (getCardValue(playerVisibleCard) < getCardValue(computerVisibleCard)) {
             setComputerDeck((prev) => [
-            ...prev,
-            playerCard,
-            computerCard,
-            playerHiddenCard,
-            computerHiddenCard,
-            playerVisibleCard,
-            computerVisibleCard,
+                ...prev,
+                playerCard,
+                computerCard,
+                playerHiddenCard,
+                computerHiddenCard,
+                playerVisibleCard,
+                computerVisibleCard,
             ]);
             setRoundWinner('Ordinateur');
         } else {
@@ -112,10 +123,6 @@ const Jeu = () => {
         }
     };
 
-    const getCardValue = (card: Card) => {
-        const valueOrder = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'VALET', 'DAME', 'ROI', 'AS'];
-        return valueOrder.indexOf(card.rank);
-    };
 
     return (
         <div className="flex h-screen bg-[#313338]">
